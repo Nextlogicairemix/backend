@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: nextlogicai-backend
+    name: nextlogicairemix-backend
     env: python
     region: oregon
     plan: free
