@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextLogicAI - Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+</head>
+<body class="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8 max-w-md">
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Sign Up</h2>
+            <form id="register-form" class="space-y-4" method="POST" action="/register">
+                <input type="text" name="username" placeholder="Username" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
+                <input type="password" name="password" placeholder="Password" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
+                <div class="h-captcha" data-sitekey="{{ hcaptcha_site_key }}"></div>
+                <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700">Sign Up</button>
+            </form>
+            <p id="register-error" class="text-red-500 text-center mt-2 hidden"></p>
+            <p class="text-gray-600 text-center mt-4">Already have an account? <a href="/login" class="text-purple-600 hover:underline">Log in</a></p>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('register-form');
+            const errorDiv = document.getElementById('register-error');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorDiv.classList.add('hidden');
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch('/register', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        window.location.href = result.redirect || '/login';
+                    } else {
+                        errorDiv.textContent = result.error;
+                        errorDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    errorDiv.textContent = 'Failed to connect to server';
+                    errorDiv.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

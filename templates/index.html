@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextLogicAI - Free AI Content Rewriter</title>
+    <meta name="description" content="Transform your content with NextLogicAI's AI-powered rewriter. Turn blog posts into engaging tweets, emails, and more with 3 free remixes—upgrade for unlimited!">
+    <meta property="og:title" content="NextLogicAI - AI Content Rewriter">
+    <meta property="og:description" content="Rewrite content into tweets, emails, and LinkedIn posts with AI. Start free with 3 remixes!">
+    <meta property="og:image" content="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png">
+    <meta property="og:url" content="https://www.nextlogicai.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AZGW3y8tnDTpa4IQZWmD_W73F6nx-8fpjl-WJDR2U4mGtVxrDGOvJhZZCngG-yIMUPUsLXpozO3F-OuB&vault=true&intent=subscription" defer></script>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <img src="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png" alt="NextLogicAI Logo" class="mx-auto h-36 w-auto mb-4" onerror="this.src='https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png';">
+            <p class="text-xl font-medium">Transform your content with AI-powered rewriting</p>
+            <div class="mt-4 flex justify-center items-center">
+                <p class="font-semibold bg-white/20 backdrop-blur-sm rounded-full px-6 py-2" id="uses-counter">Checking session...</p>
+                <button id="login-btn" class="ml-4 bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 font-semibold">Log In</button>
+                <button id="logout-btn" class="ml-4 bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 font-semibold hidden">Log Out</button>
+            </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <section class="mb-8 bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-white">
+            <p class="text-lg">Welcome to <b>NextLogicAI</b>, the ultimate free-to-try <b>AI content rewriter</b> designed for creators and professionals. Whether you're crafting a blog post, a Twitter thread, or a professional email, our advanced AI transforms your ideas into polished, engaging content in seconds. Stop staring at a blank screen and <b>start publishing</b> with ease!</p>
+            <p class="mt-4 text-md">Get started with <b>3 free remixes</b>! Turn a rough draft into an SEO-friendly article or a simple thought into a viral social post. Upgrade to unlimited remixes for just <b>$4.99/month</b> and save countless hours of work.</p>
+        </section>
+
+        <!-- Main Content Section -->
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="grid md:grid-cols-2 gap-0">
+                <!-- Input Panel -->
+                <div class="p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Your Original Content</h2>
+                    <textarea id="input-text" placeholder="Paste your blog post, rant, idea, or anything here..." class="w-full h-64 p-4 border-2 border-gray-300 rounded-xl resize-none focus:border-purple-500 focus:outline-none text-gray-700 text-sm"></textarea>
+                    <div class="mt-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-3">Transform it into:</label>
+                        <select id="remix-type" class="w-full p-3 rounded-xl bg-white border-2 border-gray-300 focus:border-purple-500 focus:outline-none text-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                            <option value="tweet">Twitter Thread - Punchy, engaging tweets</option>
+                            <option value="email">📨 Professional Email - Clear, polished tone</option>
+                            <option value="ad">📣 Ad Copy - Persuasive and catchy</option>
+                            <option value="linkedin">💼 LinkedIn Post - Professional insights</option>
+                            <option value="blog">📝 Blog Post - SEO-friendly article</option>
+                            <option value="instagram">📸 Instagram Caption - Engaging with hashtags</option>
+                            <option value="youtube">🎥 YouTube Description - Optimized with timestamps</option>
+                            <option value="press">📰 Press Release - Professional announcement</option>
+                            <option value="story">📖 Story/Narrative - Engaging storytelling</option>
+                            <option value="casual">😎 Casual Friendly - Relaxed and fun</option>
+                            <option value="followup">💬 Friendly Follow-Up - Warm and casual</option>
+                            <option value="apology">🙏 Quick Apology - Sincere and brief</option>
+                            <option value="reminder">⏰ Urgent Reminder - Direct and clear</option>
+                            <option value="smalltalk">👋 Small Talk Starter - Easy and approachable</option>
+                            <option value="agenda">📅 Meeting Agenda Teaser - Focused and engaging</option>
+                            <option value="interview">🎤 Job Interview Pitch - Confident and concise</option>
+                            <option value="salespitch">💼 Sales Pitch Opener - Persuasive and smooth</option>
+                            <option value="thanks">❤️ Casual Thank-You Speech - Grateful and natural</option>
+                        </select>
+                    </div>
+                    <p class="text-red-600 text-sm mt-4">⚠️ Warning: It can take up to 2 minutes to render the full message.</p>
+                    <button id="remix-btn" class="w-full mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-xl disabled:opacity-50" disabled>
+                        🔐 Log in to remix!
+                    </button>
+                </div>
+
+                <!-- Output Panel -->
+                <div class="p-8 bg-white">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Your Remixed Content</h2>
+                    <div id="output-text" class="w-full h-64 p-4 bg-gray-50 rounded-xl overflow-auto border-2 border-gray-200 text-gray-700 text-sm leading-relaxed">
+                        Your remixed content will appear here...
+                    </div>
+                    <button id="copy-btn" class="w-full mt-4 bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition-all hidden">
+                        📋 Copy to Clipboard
+                    </button>
+                    <div class="mt-8 space-y-3">
+                        <p class="text-gray-600 text-md">Our <b>AI content rewriter</b> is perfect for busy marketers, writers, and content creators. From crafting persuasive ad copy to generating LinkedIn posts that boost your professional network, <b>NextLogicAI</b> adapts to your needs with precision.</p>
+                        <p class="mt-4 text-gray-600 text-md">Start with our <b>free tier</b> to experience the magic. With each remix, you’ll save time while producing high-quality content tailored to any platform—<b>try it today</b> and see the difference!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                <h2 class="text-3xl font-black mb-4 text-gray-800">🔐 Log In</h2>
+                <form id="login-form" class="space-y-4">
+                    <input type="text" name="username" placeholder="Username" required class="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-gray-700">
+                    <input type="password" name="password" placeholder="Password" required class="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none text-gray-700">
+                    <div class="h-captcha" data-sitekey="03861fa2-8edc-453e-bff0-ea7aa718b4b0"></div>
+                    <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700">Log In</button>
+                    <button type="button" id="close-login-btn" class="w-full text-gray-600 py-2 hover:text-gray-800">Cancel</button>
+                </form>
+                <p id="login-error" class="text-red-500 text-center mt-4 hidden"></p>
+                <p class="text-gray-600 text-center mt-4">Don't have an account? <a href="/register" class="text-purple-600 hover:underline">Sign up</a></p>
+            </div>
+        </div>
+
+        <!-- Paywall Modal -->
+        <div id="paywall" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-3xl">✨</span>
+                    </div>
+                    <h2 class="text-3xl font-black mb-4 text-gray-800">Unlock Unlimited Remixes</h2>
+                    <p class="text-gray-600 mb-6">You have used all your free tries! Upgrade for just <strong>$4.99/month</strong></p>
+                    <div id="paypal-button-container"></div>
+                    <button id="close-paywall-btn" class="w-full text-gray-600 py-2 hover:text-gray-800 mt-4">Maybe later</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form Section -->
+        <section class="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-white">
+            <h2 class="text-2xl font-bold mb-4 text-center">📧 Contact Us</h2>
+            <form id="contact-form" class="space-y-4 max-w-lg mx-auto">
+                <input type="text" name="name" placeholder="Your Name" required class="w-full p-3 border-2 border-white/50 rounded-xl focus:border-white focus:outline-none text-gray-800 bg-white/80">
+                <input type="email" name="email" placeholder="Your Email" required class="w-full p-3 border-2 border-white/50 rounded-xl focus:border-white focus:outline-none text-gray-800 bg-white/80">
+                <textarea name="message" placeholder="Your Message" required class="w-full h-32 p-3 border-2 border-white/50 rounded-xl focus:border-white focus:outline-none text-gray-800 bg-white/80"></textarea>
+                <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-xl">Send Message</button>
+            </form>
+            <p id="contact-status" class="text-center mt-4 hidden"></p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-white/80 text-sm">
+            <p>© 2025 NEXTLOGICAI</p>
+        </footer>
+    </div>
+    <script src="/static/script.js" defer></script>
+</body>
+</html>
