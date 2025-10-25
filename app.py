@@ -26,11 +26,13 @@ app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# CORS configuration for Netlify frontend
 CORS(app, supports_credentials=True, origins=[
-    'https://nextlogicai.com',
-    'https://*.netlify.app',
-    'http://localhost:*'
+    'https://nextlogicai.com',                   
+    'https://www.nextlogicai.com',               
+    'https://68fc3fe5fdf0b300837be57c--mellifluous-crumble-aa751e.netlify.app', 
+    'https://*.netlify.app',                
+    'http://localhost:3000',                    
+    'http://localhost:5000'
 ])
 
 # Rate limiting
