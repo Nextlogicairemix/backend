@@ -24,7 +24,7 @@ app.config['SESSION_FILE_DIR'] = os.path.join(os.getcwd(), 'flask_session')
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 CORS(app, supports_credentials=True, origins=[
     'https://nextlogicai.com',                   
