@@ -336,7 +336,7 @@ def remix():
             
             # Call Gemini API
             api_key = os.getenv('GENERATIVE_API_KEY')
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
             
             payload = {
                 "contents": [{
