@@ -25,26 +25,6 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png">
     
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "NextLogicAI Content Rewriter",
-      "applicationCategory": "BusinessApplication",
-      "description": "AI-powered content rewriter for social media, emails, and more",
-      "offers": {
-        "@type": "Offer",
-        "price": "4.99",
-        "priceCurrency": "USD"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "50"
-      }
-    }
-    </script>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=AZGW3y8tnDTpa4IQZWmD_W73F6nx-8fpjl-WJDR2U4mGtVxrDGOvJhZZCngG-yIMUPUsLXpozO3F-OuB&vault=true&intent=subscription" defer></script>
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
@@ -60,9 +40,6 @@
                 <p class="font-semibold bg-white/20 backdrop-blur-sm rounded-full px-6 py-2" id="uses-counter">Checking session...</p>
                 <a href="/register.html" id="register-btn" class="bg-green-500 hover:bg-green-600 backdrop-blur-sm rounded-full px-6 py-2 font-semibold transition-all">Sign Up Free</a>
                 <button id="login-btn" class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 font-semibold">Log In</button>
-                <button id="view-history-btn" class="bg-purple-500/80 hover:bg-purple-600 backdrop-blur-sm rounded-full px-6 py-2 font-semibold hidden">
-                    📜 History
-                </button>
                 <button id="logout-btn" class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 font-semibold hidden">Log Out</button>
                 <button id="upgrade-btn" class="bg-yellow-500 hover:bg-yellow-600 backdrop-blur-sm rounded-full px-6 py-2 font-semibold hidden">⭐ Upgrade to Premium</button>
             </div>
@@ -175,14 +152,6 @@
                     <button id="copy-btn" class="w-full mt-4 bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition-all hidden">
                         📋 Copy to Clipboard
                     </button>
-                    <button id="watch-ads-btn" class="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all">
-                        📺 Watch 5 Ads for 24hr Premium
-                    </button>
-                    <p id="ad-progress" class="text-sm text-gray-600 text-center mt-2">0/5 ads watched today</p>
-
-                    <button id="save-remix-btn" class="w-full mt-2 bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-xl transition-all hidden">
-                        💾 Save This Remix
-                    </button>
                     <div class="mt-8 space-y-3">
                         <p class="text-gray-600 text-md">Our <b>AI content rewriter</b> is perfect for busy marketers, writers, and content creators. Start with 3 free remixes, sign up for unlimited basic remixes, or upgrade to Premium for all professional features!</p>
                     </div>
@@ -190,7 +159,6 @@
             </div>
         </div>
 
-        <!-- MODALS -->
         <div id="login-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
             <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
                 <h2 class="text-3xl font-black mb-4 text-gray-800">🔐 Log In</h2>
@@ -258,44 +226,6 @@
             </div>
         </div>
 
-        <!-- AD MODAL -->
-        <div id="ad-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-            <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl text-center">
-                <h2 class="text-3xl font-black mb-4 text-gray-800">📺 Watch Video Ad</h2>
-                <p class="text-gray-600 mb-6">Watch this 30-second ad to earn progress toward 24 hours of Premium access!</p>
-                
-                <!-- Ad Container (Replace with actual ad network code) -->
-                <div id="ad-container" class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-12 mb-6 text-white">
-                    <p class="text-2xl font-bold mb-4">🎬 Video Ad Playing...</p>
-                    <p class="text-sm">Replace this div with your ad network SDK</p>
-                </div>
-                
-                <!-- Demo button - remove in production -->
-                <button id="complete-ad-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl mb-2">
-                    ✅ Complete Ad (Demo Only)
-                </button>
-                
-                <button id="close-ad-modal" class="w-full text-gray-600 py-2 hover:text-gray-800">
-                    Skip for now
-                </button>
-            </div>
-        </div>
-
-        <!-- HISTORY MODAL -->
-        <div id="history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden overflow-y-auto">
-            <div class="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-black text-white">📜 Your Remix History</h2>
-                    <button id="close-history-btn" class="text-white/80 hover:text-white text-3xl font-bold">&times;</button>
-                </div>
-                
-                <div id="history-container" class="max-h-96 overflow-y-auto">
-                    <p class="text-white text-center py-8">Loading your history...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTACT SECTION -->
         <section class="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-white">
             <h2 class="text-2xl font-bold mb-4 text-center">📧 Contact Us</h2>
             <form id="contact-form" class="space-y-4 max-w-lg mx-auto">
@@ -307,7 +237,6 @@
             <p id="contact-status" class="text-center mt-4 hidden"></p>
         </section>
 
-        <!-- FAQ SECTION -->
         <section class="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-8 text-white">
             <h2 class="text-3xl font-bold mb-6 text-center">❓ Frequently Asked Questions</h2>
             
@@ -339,35 +268,10 @@
             </div>
         </section>
 
-        <!-- REFERRAL SECTION -->
-        <section class="mt-12 bg-white/10 backdrop-blur-sm rounded-2xl p-8 text-white">
-            <h2 class="text-3xl font-bold mb-6 text-center">🎁 Refer Friends, Get Premium Free!</h2>
-            <p class="text-center mb-6">Share your unique referral link. When a friend signs up and upgrades to premium, you BOTH get rewards!</p>
-            
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-white/20 rounded-xl p-6 mb-4">
-                    <label class="text-sm font-semibold block mb-2">Your Referral Link:</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="referral-link" readonly class="flex-1 p-3 rounded-lg bg-white text-gray-800 font-mono text-sm" value="Log in to get your referral link">
-                        <button onclick="copyReferralLink()" class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-lg font-semibold transition-all">
-                            📋 Copy
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="bg-white/10 rounded-xl p-4 text-center">
-                        <p class="text-4xl font-black mb-2" id="referral-count">0</p>
-                        <p class="text-sm">Successful Referrals</p>
-                    </div>
-                    <div class="bg-white/10 rounded-xl p-4 text-center">
-                        <p class="text-4xl font-black mb-2" id="pending-rewards">0</p>
-                        <p class="text-sm">Days of Free Premium</p>
-                    </div>
-                </div>
-                
-                <div class="mt-6 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-xl p-6">
-                    <h3 class="font-bold text-lg mb-3">🎉 How It Works:</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li>✅ <strong>You Get:</strong> 30 days of Premium when friend upgrades</li>
-                        <li
+        <footer class="text-center mt-8 text-white/80 text-sm">
+            <p>© 2025 NEXTLOGICAI</p>
+        </footer>
+    </div>
+    <script src="/static/script.js" defer></script>
+</body>
+</html>
