@@ -34,8 +34,12 @@
         <div class="bg-white rounded-xl p-6 shadow-lg">
             <h1 class="text-2xl font-bold mb-4 text-gray-800 text-center">Sign Up</h1>
             <form id="register-form" class="space-y-4">
+                <input type="text" name="fullname" placeholder="Full Name" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
                 <input type="text" name="username" placeholder="Username" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
+                <input type="email" name="email" placeholder="Email Address" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
+                <input type="date" name="birthdate" placeholder="Birthdate" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
                 <input type="password" name="password" placeholder="Password (min 6 characters)" required minlength="6" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
+                <input type="text" name="referral_code" placeholder="Referral Code (optional)" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-700">
                 <div class="h-captcha" data-sitekey="fbfa5e8c-ac2e-4db6-ac26-469ee2280f6a"></div>
                 <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700">Sign Up</button>
             </form>
@@ -51,6 +55,11 @@
                 <li>✅ Twitter, Instagram, LinkedIn & more</li>
                 <li>✅ No credit card required</li>
             </ul>
+        </div>
+
+        <div class="mt-4 bg-gradient-to-r from-green-400 to-blue-400 rounded-xl p-4 text-white">
+            <h2 class="font-bold mb-2">🎁 Got a Referral Code?</h2>
+            <p class="text-sm">Enter it above to help your friend earn rewards when you upgrade to Premium!</p>
         </div>
 
         <div class="mt-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-4 text-gray-900">
@@ -88,9 +97,19 @@
             });
         }
 
+        // Check if there's a referral code in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('register-form');
             const errorDiv = document.getElementById('register-error');
+            const referralInput = document.querySelector('input[name="referral_code"]');
+            
+            // Pre-fill referral code if it's in the URL
+            if (refCode) {
+                referralInput.value = refCode;
+            }
             
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -107,8 +126,12 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
+                            fullname: formData.get('fullname'),
                             username: formData.get('username'),
+                            email: formData.get('email'),
+                            birthdate: formData.get('birthdate'),
                             password: formData.get('password'),
+                            referral_code: formData.get('referral_code'),
                             'h-captcha-response': hcaptchaResponse
                         })
                     });
