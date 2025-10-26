@@ -19,9 +19,15 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
 
 # Session configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # ← CRITICAL for cross-origin
+app.config['SESSION_COOKIE_NAME'] = 'nextlogicai_session'
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
+
 Session(app)
 
 CORS(app, resources={
