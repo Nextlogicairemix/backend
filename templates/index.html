@@ -43,17 +43,18 @@
 </head>
 <body class="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 min-h-screen text-white font-sans">
     <!-- Header -->
-    <header class="container mx-auto px-4 py-6">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png" onerror="this.src='https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png'" alt="NextLogicAI Logo" class="h-12 w-12">
-                <h1 class="text-3xl font-black">NextLogicAI</h1>
-            </div>
-            <nav>
-                <a href="#how-it-works" class="text-white/80 hover:text-white transition-all">How It Works</a>
-            </nav>
+  
+  <header class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png" onerror="this.src='https://res.cloudinary.com/dvovudqsd/image/upload/v1760056331/og-logo.png'" alt="NextLogicAI Logo" class="h-20 w-20">
+            <h1 class="text-3xl font-black">NextLogicAI</h1>
         </div>
-    </header>
+        <nav>
+            <a href="#how-it-works" class="text-white/80 hover:text-white transition-all">How It Works</a>
+        </nav>
+    </div>
+</header>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-12 max-w-5xl">
@@ -64,22 +65,22 @@
         </div>
 
         <!-- Main Tool Card -->
-        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl mb-8">
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="block text-lg font-bold mb-2">Your Content</label>
-                    <textarea id="input-text" placeholder="Paste your text here... (blog post, email, article, etc.)" class="w-full h-64 p-4 rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder-white/50 focus:border-white/40 focus:outline-none resize-none"></textarea>
-                </div>
-                <div>
-                    <label class="block text-lg font-bold mb-2">AI Remix Output</label>
-                    <div id="output-text" class="w-full h-64 p-4 rounded-xl border-2 border-white/20 bg-white/10 text-white overflow-y-auto">
-                        Your remixed content will appear here...
-                    </div>
-                </div>
+      <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl mb-8">
+    <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div>
+            <label class="block text-lg font-bold mb-2">Your Content</label>
+            <textarea id="input-text" placeholder="Paste your text here... (blog post, email, article, etc.)" class="w-full h-64 p-4 rounded-xl border-2 border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"></textarea>
+        </div>
+        <div>
+            <label class="block text-lg font-bold mb-2">AI Remix Output</label>
+            <div id="output-text" class="w-full h-64 p-4 rounded-xl border-2 border-gray-300 bg-white text-gray-900 overflow-y-auto">
+                Your remixed content will appear here...
             </div>
+        </div>
+    </div>
 
             <div class="flex flex-col md:flex-row gap-4 items-center mb-4">
-                <select id="remix-type" class="flex-1 p-3 rounded-xl border-2 border-white/20 bg-white/10 text-white font-semibold focus:border-white/40 focus:outline-none">
+                <select id="remix-type" class="flex-1 p-3 rounded-xl border-2 border-white/20 bg-white/10 text-black font-semibold focus:border-black/40 focus:outline-none">
                     <optgroup label="Free Options">
                         <option value="tweet">Twitter Thread</option>
                         <option value="linkedin">LinkedIn Post</option>
