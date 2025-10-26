@@ -366,8 +366,61 @@ def contact():
     if not all([name, email, message]):
         return jsonify({"error": "All fields required"}), 400
     
-    # TODO: Send email or save to database
-    print(f"Contact from {name} ({email}): {message}")
+    # Validate email format
+    import re
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return jsonify({"error": "Invalid email address"}), 400
+    
+    # Send email via Mailgun
+    try:
+        mailgun_domain = os.environ.get('MAILGUN_DOMAIN')
+        mailgun_api_key = os.environ.get('MAILGUN_API_KEY')
+        recipient_email = os.environ.get('CONTACT_EMAIL')
+        
+        if not all([mailgun_domain, mailgun_api_key, recipient_email]):
+            print("Mailgun not configured")
+            return jsonify({"error": "Email service not configured"}), 500
+        
+        response = requests.post(
+            f"https://api.mailgun.net/v3/{mailgun_domain}/messages",
+            auth=("api", mailgun_api_key),
+            data={
+                "from": f"NextLogicAI Contact <noreply@{mailgun_domain}>",
+                "to": recipient_email,
+                "reply-to": email,
+                "subject": f"Contact Form: {name}",
+                "html": f"""
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #6366f1;">New Contact Form Submission</h2>
+        
+        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Name:</strong> {name}</p>
+            <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+        </div>
+        
+        <div style="background: #fff; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <h3>Message:</h3>
+            <p style="white-space: pre-wrap;">{message}</p>
+        </div>
+    </div>
+</body>
+</html>
+                """
+            }
+        )
+        
+        if response.status_code == 200:
+            return jsonify({"message": "Message sent successfully!"}), 200
+        else:
+            print(f"Mailgun error: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to send message"}), 500
+            
+    except Exception as e:
+        print(f"Contact form error: {e}")
+        return jsonify({"error": "Failed to send message"}), 500
     
     return jsonify({"message": "Message received"}), 200
 
