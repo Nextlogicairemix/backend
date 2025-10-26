@@ -286,73 +286,121 @@ def check_session():
     }), 200
 
 @app.route('/remix', methods=['POST'])
-@limiter.limit("100 per hour")
-def remix_content():
+@limiter.limit("20 per hour")
+def remix():
     data = request.get_json()
-    text = data.get('prompt') or data.get('text')
-    remix_type = data.get('remix-type') or data.get('type', 'tweet')
+    content = data.get('content', '').strip()
+    style = data.get('style', 'professional')
     
-    if not text:
-        return jsonify({"error": "No text provided"}), 400
+    if not content:
+        return jsonify({"error": "No content provided"}), 400
     
-    # Check if user is logged in
-    if 'user_id' not in session:
-        return jsonify({"error": "Please log in to use this feature"}), 401
+    # Check if user is logged in or using guest quota
+    user_id = session.get('user_id')
     
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
+    if user_id:
+        # Logged-in user - check their uses_left in database
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"error": "Database error"}), 500
+        
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT uses_left, is_premium FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            cur.close()
+            
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+            
+            uses_left, is_premium = user
+            
+            # Premium users have unlimited uses
+            if not is_premium:
+                if uses_left <= 0:
+                    return jsonify({
+                        "error": "No remixes left. Upgrade to premium for unlimited remixes!",
+                        "upgrade_required": True
+                    }), 403
+                
+                # Decrement uses_left for non-premium users
+                cur = conn.cursor()
+                cur.execute("UPDATE users SET uses_left = uses_left - 1 WHERE id = %s", (user_id,))
+                conn.commit()
+                cur.close()
+                uses_left -= 1
+            
+            conn.close()
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return jsonify({"error": str(e)}), 500
+    else:
+        # Guest user - use session-based counter
+        if 'guest_uses_left' not in session:
+            session['guest_uses_left'] = 3  # Initialize with 3 free uses
+        
+        uses_left = session['guest_uses_left']
+        
+        if uses_left <= 0:
+            return jsonify({
+                "error": "You've used all 3 free remixes! Sign up for more.",
+                "signup_required": True
+            }), 403
+        
+        # Decrement guest counter
+        session['guest_uses_left'] = uses_left - 1
+        uses_left -= 1
     
+    # Call OpenAI API to remix content
     try:
-        cur = conn.cursor()
-        cur.execute("SELECT uses_left, is_premium FROM users WHERE id = %s", (session['user_id'],))
-        user = cur.fetchone()
+        openai_api_key = os.environ.get('OPENAI_API_KEY')
+        if not openai_api_key:
+            return jsonify({"error": "OpenAI API not configured"}), 500
         
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        style_prompts = {
+            'professional': 'Rewrite this in a professional, polished tone suitable for business communication.',
+            'casual': 'Rewrite this in a friendly, conversational tone.',
+            'creative': 'Rewrite this with creative flair and engaging language.',
+            'concise': 'Rewrite this more concisely while keeping the key points.',
+            'expanded': 'Expand on this content with more details and examples.'
+        }
         
-        # Premium options
-        premium_options = ['email', 'ad', 'blog', 'story', 'smalltalk', 'salespitch', 
-                          'thanks', 'followup', 'apology', 'reminder', 'agenda', 'interview']
+        prompt = style_prompts.get(style, style_prompts['professional'])
         
-        # Check if premium required
-        if remix_type in premium_options and not user['is_premium']:
-            return jsonify({"error": "Premium subscription required for this feature"}), 403
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {openai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'gpt-3.5-turbo',
+                'messages': [
+                    {'role': 'system', 'content': prompt},
+                    {'role': 'user', 'content': content}
+                ],
+                'temperature': 0.7,
+                'max_tokens': 1000
+            }
+        )
         
-        # Check uses left for non-premium users
-        if not user['is_premium'] and user['uses_left'] <= 0:
-            return jsonify({"error": "No free remixes left. Please upgrade to premium."}), 403
-        
-        # TODO: Call your AI API here
-        # This is a placeholder
-        remixed_text = f"[AI Remixed {remix_type}]: {text[:100]}..."
-        
-        # Deduct usage for non-premium
-        if not user['is_premium']:
-            cur.execute("UPDATE users SET uses_left = uses_left - 1 WHERE id = %s RETURNING uses_left", 
-                       (session['user_id'],))
-            updated_user = cur.fetchone()
-            new_uses = updated_user['uses_left']
+        if response.status_code == 200:
+            result = response.json()
+            remixed_content = result['choices'][0]['message']['content']
+            
+            return jsonify({
+                "remixed_content": remixed_content,
+                "uses_left": uses_left,
+                "is_guest": user_id is None,
+                "is_premium": user_id and is_premium
+            }), 200
         else:
-            new_uses = 'unlimited'
-        
-        # Save to history
-        cur.execute("""
-            INSERT INTO remix_history (user_id, original_text, remixed_text, remix_type)
-            VALUES (%s, %s, %s, %s)
-        """, (session['user_id'], text, remixed_text, remix_type))
-        
-        conn.commit()
-        cur.close()
-        
-        return jsonify({
-            "output": remixed_text,
-            "uses_left": new_uses
-        }), 200
-        
+            return jsonify({"error": "Failed to remix content"}), 500
+            
     except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
+        print(f"Remix error: {e}")
+        return jsonify({"error": "An error occurred"}), 500
     finally:
         conn.close()
 
