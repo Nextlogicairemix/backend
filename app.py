@@ -42,6 +42,17 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
+# PREMIUM FEATURES LIST - Must match frontend
+PREMIUM_OPTIONS = [
+    'email',      # Professional Email
+    'ad',         # Ad Copy
+    'blog',       # Blog Post
+    'story',      # Story/Narrative
+    'smalltalk',  # Small Talk Starter
+    'salespitch', # Sales Pitch Opener
+    'thanks'      # Casual Thank-You Speech
+]
+
 # Initialize session
 try:
     Session(app)
@@ -120,7 +131,7 @@ def check_session():
     user = session.get('user')
     
     if not user:
-        return jsonify({'logged_in': False, 'uses_left': 3})
+        return jsonify({'logged_in': False, 'uses_left': 3, 'is_paid': False})
     
     try:
         with get_db_connection() as conn:
@@ -136,10 +147,10 @@ def check_session():
                 })
             else:
                 session.pop('user', None)
-                return jsonify({'logged_in': False, 'uses_left': 3})
+                return jsonify({'logged_in': False, 'uses_left': 3, 'is_paid': False})
     except Exception as e:
         print(f"❌ Session check error: {str(e)}", file=sys.stderr)
-        return jsonify({'logged_in': False, 'uses_left': 3})
+        return jsonify({'logged_in': False, 'uses_left': 3, 'is_paid': False})
 
 @app.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
@@ -307,7 +318,7 @@ def logout():
 @app.route('/remix', methods=['POST'])
 @limiter.limit("30 per hour")
 def remix():
-    """Handle content remixing with AI"""
+    """Handle content remixing with AI and premium feature protection"""
     try:
         user = session.get('user')
         
@@ -322,25 +333,59 @@ def remix():
             if not user_data:
                 return jsonify({'error': 'User not found'}), 404
             
-            # Check if user has remixes left
-            if not user_data['paid'] and user_data['uses'] <= 0:
-                return jsonify({'error': 'No free remixes left!'}), 403
-            
             # Get prompt and type
             data = request.get_json()
             prompt = data.get('prompt', '').strip()
-            remix_type = data.get('remix-type', 'blog')
+            remix_type = data.get('remix-type', 'tweet')
             
             if not prompt:
                 return jsonify({'error': 'Prompt is required'}), 400
+            
+            # ⭐ CHECK IF FEATURE IS PREMIUM AND USER IS NOT PAID
+            if remix_type in PREMIUM_OPTIONS and not user_data['paid']:
+                return jsonify({
+                    'error': 'Premium subscription required for this feature',
+                    'requiresPremium': True
+                }), 403
+            
+            # Check if user has remixes left (for non-premium features)
+            if not user_data['paid'] and user_data['uses'] <= 0:
+                return jsonify({
+                    'error': 'No free remixes left. Upgrade to continue!',
+                    'requiresPremium': True
+                }), 403
             
             # Call Gemini API
             api_key = os.getenv('GENERATIVE_API_KEY')
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
             
+            # Enhanced prompts for different types
+            type_prompts = {
+                'tweet': f"Convert this into an engaging Twitter thread with 3-5 tweets. Use emojis and make it punchy:\n\n{prompt}",
+                'email': f"Rewrite this as a professional, clear, and polished email:\n\n{prompt}",
+                'ad': f"Transform this into persuasive, catchy ad copy that drives action:\n\n{prompt}",
+                'linkedin': f"Rewrite this as a professional LinkedIn post with insights:\n\n{prompt}",
+                'blog': f"Expand this into an SEO-friendly blog post with headers and paragraphs:\n\n{prompt}",
+                'instagram': f"Create an engaging Instagram caption with relevant hashtags:\n\n{prompt}",
+                'youtube': f"Write an optimized YouTube description with timestamps:\n\n{prompt}",
+                'press': f"Format this as a professional press release announcement:\n\n{prompt}",
+                'story': f"Rewrite this as an engaging narrative story:\n\n{prompt}",
+                'casual': f"Rewrite this in a relaxed, fun, casual tone:\n\n{prompt}",
+                'followup': f"Write a warm, casual follow-up message:\n\n{prompt}",
+                'apology': f"Write a sincere and brief apology:\n\n{prompt}",
+                'reminder': f"Write a direct and clear urgent reminder:\n\n{prompt}",
+                'smalltalk': f"Create an easy, approachable small talk starter:\n\n{prompt}",
+                'agenda': f"Write a focused, engaging meeting agenda teaser:\n\n{prompt}",
+                'interview': f"Create a confident, concise job interview pitch:\n\n{prompt}",
+                'salespitch': f"Write a persuasive, smooth sales pitch opener:\n\n{prompt}",
+                'thanks': f"Write a grateful, natural casual thank-you speech:\n\n{prompt}"
+            }
+            
+            formatted_prompt = type_prompts.get(remix_type, f"Rewrite this as a {remix_type}:\n\n{prompt}")
+            
             payload = {
                 "contents": [{
-                    "parts": [{"text": f"Rewrite this as a {remix_type}: {prompt}"}]
+                    "parts": [{"text": formatted_prompt}]
                 }]
             }
             
@@ -357,7 +402,7 @@ def remix():
             
             output = result['candidates'][0]['content']['parts'][0]['text']
             
-            # Deduct usage if not paid
+            # Deduct usage if not paid (only for non-premium features)
             new_uses = user_data['uses']
             if not user_data['paid']:
                 new_uses = user_data['uses'] - 1
@@ -395,6 +440,7 @@ def update_subscription():
             """, (user,))
             conn.commit()
         
+        print(f"✅ Subscription activated for user: {user}")
         return jsonify({'message': 'Subscription activated!'})
         
     except Exception as e:
