@@ -26,7 +26,7 @@ Session(app)
 
 CORS(app, resources={
     r"/*": {
-        "origins": ["https://nextlogicai.com", "http://localhost:3000"],
+        "origins": ["https://nextlogicai.com", "nextlogicai.netlify.app"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True
