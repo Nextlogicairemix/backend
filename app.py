@@ -398,7 +398,7 @@ def remix():
         
         # Google Gemini API call
         response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={gemini_api_key}',
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key={gemini_api_key}',
             headers={'Content-Type': 'application/json'},
             json={
                 'contents': [{
