@@ -396,22 +396,22 @@ def remix():
         
         prompt = remix_prompts.get(remix_type, remix_prompts['tweet'])
         
-            response = requests.post(
-                f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}',
-                headers={'Content-Type': 'application/json'},
-                json={
-                    'contents': [{
-                        'parts': [{
-                            'text': f"{prompt}\n\nContent to transform:\n{content}"
-                        }]
-                    }],
-                    'generationConfig': {
-                        'temperature': 0.7,
-                        'maxOutputTokens': 5000
-                    }
-                },
-                timeout=120
-            )
+        response = requests.post(
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}',
+            headers={'Content-Type': 'application/json'},
+            json={
+                'contents': [{
+                    'parts': [{
+                        'text': f"{prompt}\n\nContent to transform:\n{content}"
+                    }]
+                }],
+                'generationConfig': {
+                    'temperature': 0.7,
+                    'maxOutputTokens': 2000
+                }
+            },
+            timeout=120
+        )
         
         if response.status_code == 200:
             result = response.json()
@@ -454,138 +454,6 @@ def remix():
     except Exception as e:
         print(f"Remix error: {e}")
         return jsonify({"error": "An error occurred during remix"}), 500
-    finally:
-        conn.close()
-
-@app.route('/contact', methods=['POST'])
-@limiter.limit("10 per hour")
-def contact():
-    name = request.form.get('name')
-    email = request.form.get('email')
-    message = request.form.get('message')
-    
-    if not all([name, email, message]):
-        return jsonify({"error": "All fields required"}), 400
-    
-    # Validate email format
-    import re
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_pattern, email):
-        return jsonify({"error": "Invalid email address"}), 400
-    
-    # Send email via Mailgun
-    try:
-        mailgun_domain = os.environ.get('MAILGUN_DOMAIN')
-        mailgun_api_key = os.environ.get('MAILGUN_API_KEY')
-        recipient_email = os.environ.get('CONTACT_EMAIL')
-        
-        if not all([mailgun_domain, mailgun_api_key, recipient_email]):
-            print("Mailgun not configured")
-            return jsonify({"error": "Email service not configured"}), 500
-        
-        response = requests.post(
-            f"https://api.mailgun.net/v3/{mailgun_domain}/messages",
-            auth=("api", mailgun_api_key),
-            data={
-                "from": f"NextLogicAI Contact <noreply@{mailgun_domain}>",
-                "to": recipient_email,
-                "reply-to": email,
-                "subject": f"Contact Form: {name}",
-                "html": f"""
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #6366f1;">New Contact Form Submission</h2>
-        
-        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>Name:</strong> {name}</p>
-            <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
-        </div>
-        
-        <div style="background: #fff; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
-            <h3>Message:</h3>
-            <p style="white-space: pre-wrap;">{message}</p>
-        </div>
-    </div>
-</body>
-</html>
-                """
-            }
-        )
-        
-        if response.status_code == 200:
-            return jsonify({"message": "Message sent successfully!"}), 200
-        else:
-            print(f"Mailgun error: {response.status_code} - {response.text}")
-            return jsonify({"error": "Failed to send message"}), 500
-            
-    except Exception as e:
-        print(f"Contact form error: {e}")
-        return jsonify({"error": "Failed to send message"}), 500
-    
-    return jsonify({"message": "Message received"}), 200
-
-@app.route('/update_subscription', methods=['POST'])
-def update_subscription():
-    if 'user_id' not in session:
-        return jsonify({"error": "Not logged in"}), 401
-    
-    data = request.get_json()
-    subscription_id = data.get('subscriptionID')
-    
-    if not subscription_id:
-        return jsonify({"error": "No subscription ID"}), 400
-    
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database error"}), 500
-    
-    try:
-        cur = conn.cursor()
-        premium_expires = datetime.now() + timedelta(days=30)
-        
-        # Get user info for referral check
-        cur.execute("SELECT referred_by FROM users WHERE id = %s", (session['user_id'],))
-        user = cur.fetchone()
-        
-        # Update user to premium
-        cur.execute("""
-            UPDATE users 
-            SET is_premium = TRUE, premium_expires_at = %s 
-            WHERE id = %s
-        """, (premium_expires, session['user_id']))
-        
-        # If user was referred, reward the referrer
-        if user and user['referred_by']:
-            referrer_id = user['referred_by']
-            
-            # Update referral status
-            cur.execute("""
-                UPDATE referrals 
-                SET status = 'completed', completed_at = %s, reward_given = TRUE
-                WHERE referee_id = %s AND referrer_id = %s
-            """, (datetime.now(), session['user_id'], referrer_id))
-            
-            # Give referrer 30 days premium
-            cur.execute("""
-                UPDATE users 
-                SET referral_credits = referral_credits + 30,
-                    is_premium = TRUE,
-                    premium_expires_at = GREATEST(
-                        COALESCE(premium_expires_at, CURRENT_TIMESTAMP), 
-                        CURRENT_TIMESTAMP
-                    ) + INTERVAL '30 days'
-                WHERE id = %s
-            """, (referrer_id,))
-        
-        conn.commit()
-        cur.close()
-        session['is_premium'] = True
-        
-        return jsonify({"message": "Subscription activated"}), 200
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 
