@@ -396,23 +396,22 @@ def remix():
         
         prompt = remix_prompts.get(remix_type, remix_prompts['tweet'])
         
-        # Google Gemini API call
-        response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={gemini_api_key}',
-            headers={'Content-Type': 'application/json'},
-            json={
-                'contents': [{
-                    'parts': [{
-                        'text': f"{prompt}\n\nContent to transform:\n{content}"
-                    }]
-                }],
-                'generationConfig': {
-                    'temperature': 0.7,
-                    'maxOutputTokens': 2000
-                }
-            },
-            timeout=120  # 2 minute timeout for AI generation
-        )
+            response = requests.post(
+                f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}',
+                headers={'Content-Type': 'application/json'},
+                json={
+                    'contents': [{
+                        'parts': [{
+                            'text': f"{prompt}\n\nContent to transform:\n{content}"
+                        }]
+                    }],
+                    'generationConfig': {
+                        'temperature': 0.7,
+                        'maxOutputTokens': 5000
+                    }
+                },
+                timeout=120
+            )
         
         if response.status_code == 200:
             result = response.json()
