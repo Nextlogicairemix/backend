@@ -7,13 +7,12 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-# Configuration
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///nextlogic.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize extensions
 db.init_app(app)
 
 # CORS for Netlify frontend
@@ -28,6 +27,7 @@ CORS(app, supports_credentials=True, origins=[
 # Flask-Login setup
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'bp.login'  # if you have a login route
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -45,15 +45,12 @@ def home():
         "version": "2.0"
     }
 
-# Create tables
-@app.before_first_request
-def create_tables():
-    db.create_all()
-    print("✅ Database tables created")
+# === DATABASE + ADMIN SETUP (RUNS ONCE AT STARTUP) ===
+with app.app_context():
+    db.create_all()  # Create tables
+    print("Database tables ready!")
 
-# Create default admin if none exists
-@app.before_first_request
-def create_default_admin():
+    # Create default admin if none exists
     admin = User.query.filter_by(role='admin').first()
     if not admin:
         admin = User(
@@ -61,10 +58,10 @@ def create_default_admin():
             email='admin@nextlogicai.com',
             role='admin'
         )
-        admin.set_password('admin123')  # Change this!
+        admin.set_password('admin123')  # CHANGE IN PRODUCTION!
         db.session.add(admin)
         db.session.commit()
-        print("✅ Default admin created: admin@nextlogicai.com / admin123")
+        print("Default admin created: admin@nextlogicai.com / admin123")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
