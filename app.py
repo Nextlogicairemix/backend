@@ -47,6 +47,39 @@ def home():
 
 # === DATABASE + ADMIN SETUP (RUNS ONCE AT STARTUP) ===
 with app.app_context():
+    # Initialize database and create admin
+with app.app_context():
+    # Auto-fix password_hash column size if needed
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            # Try to alter the column - if it fails, it's already correct or will be created correctly
+            try:
+                conn.execute(text('ALTER TABLE "user" ALTER COLUMN password_hash TYPE VARCHAR(256);'))
+                conn.commit()
+                print("✅ Password hash column upgraded to VARCHAR(256)")
+            except Exception:
+                # Column doesn't exist yet or is already correct
+                pass
+    except Exception as e:
+        print(f"Migration note: {e}")
+    
+    db.create_all()
+    print("✅ Database tables created")
+    
+    # Create default admin if none exists
+    admin = User.query.filter_by(role='admin').first()
+    if not admin:
+        admin = User(
+            name='Admin',
+            email='admin@nextlogicai.com',
+            role='admin'
+        )
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+        print("✅ Default admin created: admin@nextlogicai.com / admin123")
+        print("⚠️  IMPORTANT: Change the admin password immediately!")
     db.create_all()  # Create tables
     print("Database tables ready!")
 
