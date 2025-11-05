@@ -9,7 +9,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(256))
     access_code = db.Column(db.String(50))
     course_completed = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(10), default='student')  # 'student' or 'admin'
