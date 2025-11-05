@@ -45,10 +45,7 @@ def home():
         "version": "2.0"
     }
 
-# === DATABASE + ADMIN SETUP (RUNS ONCE AT STARTUP) ===
-with app.app_context():
-    # Initialize database and create admin
-with app.app_context():
+    with app.app_context():
     # Auto-fix password_hash column size if needed
     try:
         from sqlalchemy import text
