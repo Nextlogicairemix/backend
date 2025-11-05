@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, User, AccessCode, RemixHistory, CourseProgress
+from models import db, User, AccessCode, RemixHistory, CourseProgress, ToolPermission, AVAILABLE_TOOLS
 from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
 import secrets
@@ -65,7 +65,8 @@ def login():
                 'role': user.role,
                 'course_completed': user.course_completed,
                 'is_school_user': user.is_school_user(),
-                'is_premium': user.can_use_premium_features()
+                'is_premium': user.can_use_premium_features(),
+                'allowed_tools': user.get_allowed_tools()
             }
         }), 200
     
@@ -90,10 +91,55 @@ def check_session():
                 'role': current_user.role,
                 'course_completed': current_user.course_completed,
                 'is_school_user': current_user.is_school_user(),
-                'is_premium': current_user.can_use_premium_features()
+                'is_premium': current_user.can_use_premium_features(),
+                'allowed_tools': current_user.get_allowed_tools()
             }
         })
     return jsonify({'logged_in': False})
+
+
+# ============================================
+# TOOL PERMISSIONS (STUDENT VIEW)
+# ============================================
+
+@bp.route('/api/tools/available', methods=['GET'])
+@login_required
+def get_available_tools():
+    """Get list of tools this student can access"""
+    allowed_tool_ids = current_user.get_allowed_tools()
+    
+    # Filter tools based on permissions
+    if allowed_tool_ids is None:
+        # Non-school user - show all tools but mark premium ones
+        tools = AVAILABLE_TOOLS
+    else:
+        # School user - only show enabled tools
+        tools = [t for t in AVAILABLE_TOOLS if t['id'] in allowed_tool_ids]
+    
+    # Add access status to each tool
+    result = []
+    for tool in tools:
+        can_access = True
+        reason = None
+        
+        # Check course completion for school users
+        if current_user.is_school_user() and not current_user.course_completed:
+            can_access = False
+            reason = 'Complete course first'
+        
+        # Check premium for non-school users
+        elif not current_user.is_school_user() and tool['premium']:
+            if not current_user.can_use_premium_features():
+                can_access = False
+                reason = 'Premium required'
+        
+        result.append({
+            **tool,
+            'can_access': can_access,
+            'reason': reason
+        })
+    
+    return jsonify({'tools': result})
 
 
 # ============================================
@@ -164,35 +210,6 @@ def complete_module():
     })
 
 
-@bp.route('/api/course/complete', methods=['POST'])
-@login_required
-def complete_course():
-    """Mark entire course as complete (all 4 modules)"""
-    current_user.course_completed = True
-    
-    # Mark all modules as complete
-    for i in range(1, 5):
-        progress = CourseProgress.query.filter_by(
-            user_id=current_user.id,
-            module_number=i
-        ).first()
-        
-        if not progress:
-            progress = CourseProgress(
-                user_id=current_user.id,
-                module_number=i,
-                completed=True,
-                completed_at=datetime.utcnow()
-            )
-            db.session.add(progress)
-        else:
-            progress.completed = True
-            progress.completed_at = datetime.utcnow()
-    
-    db.session.commit()
-    return jsonify({'message': 'Course marked complete'})
-
-
 # ============================================
 # AI REMIX / TOOL USAGE
 # ============================================
@@ -211,8 +228,13 @@ def remix_content():
     if current_user.is_school_user() and not current_user.course_completed:
         return jsonify({'error': 'Please complete the course before using tools'}), 403
     
-    # Check if premium tool and user has access
-    if tool_type in PREMIUM_TOOLS:
+    # Check if tool is allowed for this student
+    allowed_tools = current_user.get_allowed_tools()
+    if allowed_tools is not None and tool_type not in allowed_tools:
+        return jsonify({'error': 'Tool not available. Contact your teacher.'}), 403
+    
+    # Check if premium tool and user has access (for non-school users)
+    if not current_user.is_school_user() and tool_type in PREMIUM_TOOLS:
         if not current_user.can_use_premium_features():
             return jsonify({
                 'error': 'Premium feature required',
@@ -221,7 +243,7 @@ def remix_content():
     
     # Call AI API (Gemini)
     try:
-        api_key = os.environ.get(AIzaSyBlqNgRSeCnzmNQ6VU5M6pENUvSmynBzOs)
+        api_key = os.environ.get('GEMINI_API_KEY')
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
         
@@ -231,12 +253,14 @@ def remix_content():
             'email': f'Write a professional email based on:\n\n{content}',
             'blog': f'Expand into a blog post with headers:\n\n{content}',
             'summary': f'Summarize this in 2-3 sentences:\n\n{content}',
+            'ad': f'Create compelling ad copy for:\n\n{content}',
+            'story': f'Write a creative story based on:\n\n{content}',
         }
         
         prompt = prompts.get(tool_type, prompts['tweet'])
         
         response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=AIzaSyBlqNgRSeCnzmNQ6VU5M6pENUvSmynBzOs',
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}',
             headers={'Content-Type': 'application/json'},
             json={
                 'contents': [{'parts': [{'text': prompt}]}],
@@ -269,8 +293,131 @@ def remix_content():
 
 
 # ============================================
-# ADMIN / TEACHER ROUTES
+# ADMIN / TEACHER ROUTES - TOOL MANAGEMENT
 # ============================================
+
+@bp.route('/api/admin/tools/available', methods=['GET'])
+@login_required
+def get_all_tools():
+    """Get all available tools (for teacher to enable/disable)"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Not authorized'}), 403
+    
+    return jsonify({'tools': AVAILABLE_TOOLS})
+
+
+@bp.route('/api/admin/access_code/<code>/tools', methods=['GET'])
+@login_required
+def get_code_tools(code):
+    """Get enabled tools for a specific access code"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Not authorized'}), 403
+    
+    access_code = AccessCode.query.filter_by(code=code, created_by=current_user.id).first()
+    if not access_code:
+        return jsonify({'error': 'Access code not found'}), 404
+    
+    enabled_tools = ToolPermission.query.filter_by(access_code_id=access_code.id).all()
+    enabled_tool_ids = [t.tool_type for t in enabled_tools if t.enabled]
+    
+    # Return all tools with enabled status
+    tools_with_status = []
+    for tool in AVAILABLE_TOOLS:
+        tools_with_status.append({
+            **tool,
+            'enabled': tool['id'] in enabled_tool_ids
+        })
+    
+    return jsonify({
+        'access_code': code,
+        'school_name': access_code.school_name,
+        'tools': tools_with_status
+    })
+
+
+@bp.route('/api/admin/access_code/<code>/tools', methods=['POST'])
+@login_required
+def update_code_tools(code):
+    """Enable/disable specific tools for an access code"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Not authorized'}), 403
+    
+    access_code = AccessCode.query.filter_by(code=code, created_by=current_user.id).first()
+    if not access_code:
+        return jsonify({'error': 'Access code not found'}), 404
+    
+    data = request.json
+    tool_type = data.get('tool_type')
+    enabled = data.get('enabled', True)
+    
+    # Check if permission exists
+    permission = ToolPermission.query.filter_by(
+        access_code_id=access_code.id,
+        tool_type=tool_type
+    ).first()
+    
+    if not permission:
+        permission = ToolPermission(
+            access_code_id=access_code.id,
+            tool_type=tool_type,
+            enabled=enabled
+        )
+        db.session.add(permission)
+    else:
+        permission.enabled = enabled
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': f'Tool {tool_type} {"enabled" if enabled else "disabled"}',
+        'tool_type': tool_type,
+        'enabled': enabled
+    })
+
+
+@bp.route('/api/admin/access_code/<code>/tools/bulk', methods=['POST'])
+@login_required
+def bulk_update_tools(code):
+    """Enable/disable multiple tools at once"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Not authorized'}), 403
+    
+    access_code = AccessCode.query.filter_by(code=code, created_by=current_user.id).first()
+    if not access_code:
+        return jsonify({'error': 'Access code not found'}), 404
+    
+    data = request.json
+    enabled_tools = data.get('enabled_tools', [])  # List of tool IDs to enable
+    
+    # Disable all existing
+    existing = ToolPermission.query.filter_by(access_code_id=access_code.id).all()
+    for perm in existing:
+        perm.enabled = False
+    
+    # Enable selected tools
+    for tool_id in enabled_tools:
+        permission = ToolPermission.query.filter_by(
+            access_code_id=access_code.id,
+            tool_type=tool_id
+        ).first()
+        
+        if not permission:
+            permission = ToolPermission(
+                access_code_id=access_code.id,
+                tool_type=tool_id,
+                enabled=True
+            )
+            db.session.add(permission)
+        else:
+            permission.enabled = True
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': f'{len(enabled_tools)} tools enabled',
+        'enabled_tools': enabled_tools
+    })
+
 
 @bp.route('/api/admin/create_code', methods=['POST'])
 @login_required
@@ -280,6 +427,7 @@ def create_code():
     
     data = request.json
     school_name = data.get('school_name', 'Default School')
+    default_tools = data.get('default_tools', ['tweet', 'summary'])  # Start with basic tools
     
     new_code = f"{secrets.token_hex(4).upper()}"
     code = AccessCode(
@@ -288,11 +436,23 @@ def create_code():
         school_name=school_name
     )
     db.session.add(code)
+    db.session.flush()  # Get the ID
+    
+    # Add default tools
+    for tool_id in default_tools:
+        permission = ToolPermission(
+            access_code_id=code.id,
+            tool_type=tool_id,
+            enabled=True
+        )
+        db.session.add(permission)
+    
     db.session.commit()
     
     return jsonify({
         'code': new_code,
-        'school_name': school_name
+        'school_name': school_name,
+        'default_tools': default_tools
     })
 
 
