@@ -7,11 +7,9 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-app = Flask(__name__)
-
 # Configuration
-app.config['SECRET_KEY'] = os.getenv(7owii7a8eueF6P1kU6U8OL4Na7ZvKZVH)
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///nextlogic.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
