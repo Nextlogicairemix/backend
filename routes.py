@@ -221,7 +221,7 @@ def remix_content():
     
     # Call AI API (Gemini)
     try:
-        api_key = os.environ.get('GEMINI_API_KEY')
+        api_key = os.environ.get(AIzaSyBlqNgRSeCnzmNQ6VU5M6pENUvSmynBzOs)
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
         
@@ -236,7 +236,7 @@ def remix_content():
         prompt = prompts.get(tool_type, prompts['tweet'])
         
         response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}',
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=AIzaSyBlqNgRSeCnzmNQ6VU5M6pENUvSmynBzOs',
             headers={'Content-Type': 'application/json'},
             json={
                 'contents': [{'parts': [{'text': prompt}]}],
