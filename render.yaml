@@ -1,29 +1,13 @@
 services:
   - type: web
-    name: nextlogicairemix-backend
-    env: python
-    region: oregon
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    name: nextlogic-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-      - key: FLASK_SECRET_KEY
-        sync: false
-      - key: DATABASE_URL
-        sync: false
-      - key: GENERATIVE_API_KEY
-        sync: false
-      - key: HCAPTCHA_SITE_KEY
-        sync: false
-      - key: HCAPTCHA_SECRET
-        sync: false
-      - key: PAYPAL_PLAN_ID
-        value: P-5LK680852J287884DNDUFRKA
-
-databases:
-  - name: nextlogicai-db
-    databaseName: nextlogicai
-    user: nextlogicai_user
-    plan: free
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://nlogic.netlify.app
