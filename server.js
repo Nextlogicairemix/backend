@@ -216,7 +216,7 @@ app.post('/api/ai/remix', requireAuth, async (req, res) => {
 
     // Call Gemini API
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{
