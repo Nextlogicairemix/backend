@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^nextlogicai\.com$ [NC]
+RewriteRule .* - [R=404,L]
